@@ -75,7 +75,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     }
 });
 
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);
 });
 
