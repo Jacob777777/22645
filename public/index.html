@@ -20,15 +20,14 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100%;
-            min-height: 100vh;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             background: var(--bg-dark);
             color: var(--text-light);
             user-select: none;
             -webkit-user-select: none;
-            position: relative;
-            overflow-y: hidden;
         }
 
         .welcome-screen {
@@ -121,20 +120,21 @@
         }
 
         .chat-container {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 60px;
+            bottom: 70px;
             background: var(--bg-darker);
+            overflow: hidden;
         }
 
         .message-container {
             height: 100%;
-            overflow-y: scroll;
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 20px;
-            padding-bottom: 20px;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
         .message {
@@ -198,26 +198,25 @@
         }
 
         .message-input-container {
-            position: fixed;
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             background: var(--bg-darker);
             padding: 10px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
             border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
         }
 
         .input-wrapper {
-            max-width: 800px;
-            margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 25px;
-            border: 1px solid rgba(0,255,157,0.3);
+            padding: 8px;
+            border-radius: 20px;
+            margin: 0 auto;
+            max-width: 800px;
         }
 
         .action-button {
@@ -308,16 +307,20 @@
 
         @media (max-width: 768px) {
             .chat-container {
-                bottom: 70px;
+                bottom: 65px;
             }
 
             .message-container {
                 padding: 10px;
             }
 
-            .message-input-container {
-                padding: 8px;
-                padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            .input-wrapper {
+                padding: 6px;
+                gap: 6px;
+            }
+
+            .message-input {
+                font-size: 16px;
             }
         }
 
@@ -466,7 +469,10 @@
             }
 
             chatContainer.appendChild(messageElement);
-            scrollToBottom();
+            
+            requestAnimationFrame(() => {
+                scrollToBottom();
+            });
         }
 
         function sendMessage() {
@@ -763,25 +769,19 @@
         }
 
         function scrollToBottom() {
-            const chatContainer = document.querySelector('.message-container');
-            if (chatContainer) {
-                const scrollOptions = {
-                    top: chatContainer.scrollHeight,
-                    behavior: 'smooth'
-                };
-
-                try {
-                    chatContainer.scrollTo(scrollOptions);
-                } catch (error) {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }
+            const messageContainer = document.querySelector('.message-container');
+            if (messageContainer) {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         }
 
         window.addEventListener('resize', () => {
-            const chatContainer = document.querySelector('.message-container');
-            if (chatContainer) {
-                scrollToBottom();
+            scrollToBottom();
+        });
+
+        document.addEventListener('focusin', (e) => {
+            if (e.target.id === 'messageInput') {
+                setTimeout(scrollToBottom, 300);
             }
         });
     </script>
