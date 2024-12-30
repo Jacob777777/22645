@@ -2,7 +2,9 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>J.C.B聊天室</title>
     <style>
         :root {
@@ -11,10 +13,19 @@
             --bg-darker: #0a0a0a;
             --text-light: #ffffff;
             --text-gray: #888888;
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --vh: 1vh;
         }
 
         body {
             margin: 0;
+            padding: 0;
+            height: 100vh; /* fallback */
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            -webkit-text-size-adjust: 100%;
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             background: var(--bg-dark);
             min-height: 100vh;
@@ -115,26 +126,18 @@
         }
 
         .chat-container {
-            margin-bottom: 80px;
-            padding: 20px;
-            background: var(--bg-darker);
-            min-height: calc(100vh - 160px);
+            height: calc(100% - 80px);
+            overflow: hidden;
             position: relative;
+            padding-bottom: var(--safe-area-inset-bottom);
         }
 
         .message-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            height: 100%;
             overflow-y: auto;
-            scroll-behavior: smooth;
-            height: calc(100vh - 160px);
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;     /* Firefox */
-        }
-
-        .message-container::-webkit-scrollbar {
-            display: none;  /* Chrome, Safari and Opera */
+            -webkit-overflow-scrolling: touch; /* iOS 滑動優化 */
+            padding: 20px;
+            padding-bottom: 60px;
         }
 
         .message {
@@ -202,11 +205,10 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 20px;
-            background: rgba(10,10,10,0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            background: var(--bg-darker);
+            padding: 10px;
+            padding-bottom: calc(10px + var(--safe-area-inset-bottom));
+            z-index: 1000;
         }
 
         .input-wrapper {
@@ -308,86 +310,62 @@
             background: #00cc7d;
         }
 
+        /* 手機版特別優化 */
         @media (max-width: 768px) {
-            .welcome-title {
-                font-size: 2.5em;
-                padding: 0 20px;
-            }
-
-            .name-input {
-                width: 80%;
-                max-width: 300px;
-            }
-
             .message-container {
                 padding: 10px;
-                height: calc(100vh - 140px);
+            }
+
+            .input-wrapper {
+                padding: 8px;
+                gap: 8px;
+                margin: 0 5px;
             }
 
             .message-bubble {
                 max-width: 85%;
-            }
-
-            .input-wrapper {
-                margin: 0 10px;
-                padding: 8px;
-                gap: 8px;
-            }
-
-            .action-button {
-                width: 35px;
-                height: 35px;
-                font-size: 1.2em;
-            }
-
-            .send-button {
-                width: 45px;
-                height: 45px;
-                padding: 0;
-                margin-left: 5px;
-                box-shadow: 0 2px 8px rgba(0,255,157,0.3);
-            }
-
-            .send-icon {
-                font-size: 24px;
-                transform: rotate(-90deg); /* 確保在手機版也朝右 */
-            }
-
-            .input-wrapper {
-                padding: 8px;
-                gap: 8px;
-                background: rgba(255,255,255,0.08);
-            }
-
-            .message-input {
-                height: 40px;
                 padding: 8px 12px;
-                font-size: 16px;
+                font-size: 14px;
             }
 
             .action-button {
                 width: 40px;
                 height: 40px;
+                min-width: 40px; /* 防止壓縮 */
             }
 
+            .message-input {
+                height: 40px;
+                min-height: 40px;
+                padding: 8px 12px;
+                font-size: 16px; /* 防止 iOS 自動縮放 */
+            }
+
+            .send-button {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+            }
+
+            /* 表情選擇器優化 */
             .emoji-picker {
-                position: fixed;
-                bottom: 70px;
-                left: 10px;
-                right: 10px;
-                display: none;
-                grid-template-columns: repeat(8, 1fr);
-                background: var(--bg-darker);
-                padding: 10px;
-                border-radius: 15px;
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
                 max-height: 200px;
-                overflow-y: auto;
-                z-index: 1000;
+                bottom: 60px;
             }
+        }
 
+        /* 跨瀏覽器兼容性 */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS 特定樣式 */
+            .message-container {
+                padding-bottom: 70px;
+            }
+        }
+
+        /* 修復 Safari 的特定問題 */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .message-input-container {
-                padding: 10px;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom));
             }
         }
 
@@ -768,6 +746,47 @@
                     e.preventDefault();
                 }
             }, { passive: false });
+
+            // 設置真實的視口高度
+            function setVH() {
+                let vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+
+            // 初始設置
+            setVH();
+
+            // 監聽視口變化
+            window.addEventListener('resize', () => {
+                setTimeout(setVH, 100);
+            });
+
+            // 防止彈性滾動
+            document.body.addEventListener('touchmove', function(e) {
+                if (e.target.closest('.message-container')) {
+                    e.stopPropagation();
+                } else {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // 修復 iOS 鍵盤問題
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                    }, 100);
+                });
+
+                messageInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                    }, 100);
+                });
+            }
         });
 
         function showFullscreenImage(src) {
@@ -785,10 +804,19 @@
 
         function scrollToBottom() {
             const chatContainer = document.querySelector('.message-container');
-            chatContainer.scrollTo({
-                top: chatContainer.scrollHeight,
-                behavior: 'smooth'
-            });
+            if (chatContainer) {
+                const scrollOptions = {
+                    top: chatContainer.scrollHeight,
+                    behavior: 'smooth'
+                };
+
+                // 檢查是否支援平滑滾動
+                try {
+                    chatContainer.scrollTo(scrollOptions);
+                } catch (error) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }
         }
 
         window.addEventListener('resize', () => {
